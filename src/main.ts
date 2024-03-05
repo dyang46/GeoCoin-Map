@@ -10,13 +10,21 @@ const MERRILL_CLASSROOM = leaflet.latLng({
     lng: - 122.0533
 });
 
+const currentLat = MERRILL_CLASSROOM.lat + 0.0001;
+const currentLng = MERRILL_CLASSROOM.lng + 0.0001;
+
+//currentLng.lat += 1;
+const newPos = leaflet.latLng({ lat: currentLat, lng: currentLng });
+console.log(newPos);
+console.log(MERRILL_CLASSROOM);
+
+
 const GAMEPLAY_ZOOM_LEVEL = 19;
 const TILE_DEGREES = 1e-4;
 const NEIGHBORHOOD_SIZE = 8;
 const PIT_SPAWN_PROBABILITY = 0.1;
-
 const mapContainer = document.querySelector<HTMLElement>("#map")!;
-
+const test = document.getElementById("test");
 const map = leaflet.map(mapContainer, {
     center: MERRILL_CLASSROOM,
     zoom: GAMEPLAY_ZOOM_LEVEL,
@@ -31,7 +39,7 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
 }).addTo(map);
 
-const playerMarker = leaflet.marker(MERRILL_CLASSROOM);
+const playerMarker = leaflet.marker(MERRILL_CLASSROOM, { draggable: true });
 playerMarker.bindTooltip("That's you!");
 playerMarker.addTo(map);
 
@@ -56,13 +64,25 @@ function makePit(i: number, j: number) {
         const container = document.createElement("div");
         container.innerHTML = `
                 <div>There is a pit here at "${i},${j}". It has value <span id="value">${value}</span>.</div>
-                <button id="poke">poke</button>`;
-        const poke = container.querySelector<HTMLButtonElement>("#poke")!;
+                <button id="collect">collect</button>
+                <button id="deposite">deposite</button>`;
+        const poke = container.querySelector<HTMLButtonElement>("#collect")!;
+        const deposite = container.querySelector<HTMLButtonElement>("#deposite")!;
         poke.addEventListener("click", () => {
-            value--;
-            container.querySelector<HTMLSpanElement>("#value")!.innerHTML = value.toString();
-            points++;
-            statusPanel.innerHTML = `${points} points accumulated`;
+            if (value > 0) {
+                value--;
+                container.querySelector<HTMLSpanElement>("#value")!.innerHTML = value.toString();
+                points++;
+                statusPanel.innerHTML = `${points} points collected`;
+            }
+        });
+        deposite.addEventListener("click", () => {
+            if (points > 0) {
+                value++;
+                container.querySelector<HTMLSpanElement>("#value")!.innerHTML = value.toString();
+                points--;
+                statusPanel.innerHTML = `${points} points collected`;
+            }
         });
         return container;
     });
@@ -76,3 +96,15 @@ for (let i = -NEIGHBORHOOD_SIZE; i < NEIGHBORHOOD_SIZE; i++) {
         }
     }
 }
+
+test?.addEventListener("click", () => {
+    //console.log(playerMarker.getLatLng());
+    playerMarker.setLatLng(newPos);
+}
+);
+
+/*function NewLng(newPos: leaflet.LatLng) {
+
+    
+}
+*/
