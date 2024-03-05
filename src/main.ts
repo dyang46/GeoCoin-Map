@@ -103,8 +103,3 @@ test?.addEventListener("click", () => {
 }
 );
 
-/*function NewLng(newPos: leaflet.LatLng) {
-
-    
-}
-*/
