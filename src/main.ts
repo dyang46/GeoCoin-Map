@@ -5,17 +5,28 @@ import luck from "./luck";
 import "./leafletWorkaround";
 
 
-const MERRILL_CLASSROOM = leaflet.latLng({
+const north = document.getElementById("north");
+const south = document.getElementById("south");
+const east = document.getElementById("east");
+const west = document.getElementById("west");
+//const sensor = document.getElementById("sensor");
+
+const MERRILL_CLASSROOM = leaflet.latLng({ 
     lat: 36.9995,
     lng: - 122.0533
 });
 
-const currentLat = MERRILL_CLASSROOM.lat + 0.0001;
-const currentLng = MERRILL_CLASSROOM.lng + 0.0001;
 
-//currentLng.lat += 1;
-const newPos = leaflet.latLng({ lat: currentLat, lng: currentLng });
-console.log(newPos);
+
+const currentLat = MERRILL_CLASSROOM.lat;
+const currentLng = MERRILL_CLASSROOM.lng; 
+
+const currentPos = leaflet.latLng({
+    lat: currentLat,
+    lng: currentLng
+});
+
+
 console.log(MERRILL_CLASSROOM);
 
 
@@ -26,7 +37,7 @@ const PIT_SPAWN_PROBABILITY = 0.1;
 const mapContainer = document.querySelector<HTMLElement>("#map")!;
 const test = document.getElementById("test");
 const map = leaflet.map(mapContainer, {
-    center: MERRILL_CLASSROOM,
+    center: MERRILL_CLASSROOM, 
     zoom: GAMEPLAY_ZOOM_LEVEL,
     minZoom: GAMEPLAY_ZOOM_LEVEL,
     maxZoom: GAMEPLAY_ZOOM_LEVEL,
@@ -39,23 +50,32 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
 }).addTo(map);
 
-const playerMarker = leaflet.marker(MERRILL_CLASSROOM, { draggable: true });
-playerMarker.bindTooltip("That's you!");
+const playerMarker = leaflet.marker(MERRILL_CLASSROOM);
+playerMarker.bindTooltip("That's you!").openTooltip();
 playerMarker.addTo(map);
 
 let points = 0;
 const statusPanel = document.querySelector<HTMLDivElement>("#statusPanel")!;
 statusPanel.innerHTML = "No points yet...";
 
-function makePit(i: number, j: number) {
-    const bounds = leaflet.latLngBounds([
-        [MERRILL_CLASSROOM.lat + i * TILE_DEGREES,
-        MERRILL_CLASSROOM.lng + j * TILE_DEGREES],
-        [MERRILL_CLASSROOM.lat + (i + 1) * TILE_DEGREES,
-        MERRILL_CLASSROOM.lng + (j + 1) * TILE_DEGREES],
+
+
+function makePit(i: number, j: number, center: leaflet.LatLng) {
+    console.log(i, j);
+    console.log(center);
+    const pit = leaflet.marker({
+        lat: MERRILL_CLASSROOM.lat + i * TILE_DEGREES,
+        lng: MERRILL_CLASSROOM.lng + j * TILE_DEGREES
+    });
+    
+    /*const bounds = leaflet.latLngBounds([
+        [center.lat+ i * TILE_DEGREES,
+        center.lng + j * TILE_DEGREES],
+        [center.lat + (i + 1) * TILE_DEGREES,
+        center.lng + (j + 1) * TILE_DEGREES],
     ]);
 
-    const pit = leaflet.rectangle(bounds) as leaflet.Layer;
+    const pit = leaflet.rectangle(bounds) as leaflet.Layer;*/
 
 
 
@@ -89,17 +109,51 @@ function makePit(i: number, j: number) {
     pit.addTo(map);
 }
 
-for (let i = -NEIGHBORHOOD_SIZE; i < NEIGHBORHOOD_SIZE; i++) {
-    for (let j = - NEIGHBORHOOD_SIZE; j < NEIGHBORHOOD_SIZE; j++) {
-        if (luck([i, j].toString()) < PIT_SPAWN_PROBABILITY) {
-            makePit(i, j);
+
+
+    for (let i = -NEIGHBORHOOD_SIZE; i < NEIGHBORHOOD_SIZE; i++) {
+        for (let j = - NEIGHBORHOOD_SIZE; j < NEIGHBORHOOD_SIZE; j++) {
+            //console.log(i, j);
+            if (luck([i, j].toString()) < PIT_SPAWN_PROBABILITY) {
+                //console.log(luck([i, j].toString()));
+                makePit(i, j, currentPos);
+            }
         }
     }
-}
+
 
 test?.addEventListener("click", () => {
     //console.log(playerMarker.getLatLng());
-    playerMarker.setLatLng(newPos);
+    playerMarker.setLatLng(leaflet.latLng({ lat: currentLat, lng: currentLng }));
+
+}
+);
+
+north?.addEventListener("click", () => {
+    currentPos.lat += TILE_DEGREES;
+    playerMarker.setLatLng(currentPos);
+    //update();
+}
+);
+
+south?.addEventListener("click", () => {
+    currentPos.lat -= TILE_DEGREES;
+    playerMarker.setLatLng(currentPos);
+    //update();
+}
+);
+
+east?.addEventListener("click", () => {
+    currentPos.lng += TILE_DEGREES;
+    playerMarker.setLatLng(currentPos);
+    //update();
+}
+);
+
+west?.addEventListener("click", () => {
+    currentPos.lng -= TILE_DEGREES;
+    playerMarker.setLatLng(currentPos);
+    //update();
 }
 );
 
